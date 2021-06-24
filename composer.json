@@ -18,13 +18,13 @@
     },
     "autoload": {
         "psr-4": {
-            "BangerGames\\PterodactylServerCreator\\": "src"
+            "BangerGames\\ServerCreator\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "BangerGames\\PterodactylServerCreator\\PterodactylServerCreatorProvider"
+                "BangerGames\\ServerCreator\\BangerGamesServiceProvider"
             ]
         }
     },

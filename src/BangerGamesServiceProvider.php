@@ -1,10 +1,10 @@
 <?php
 
-namespace BangerGames\PterodactylServerCreator;
+namespace BangerGames\ServerCreator;
 
 use Illuminate\Support\ServiceProvider;
 
-class PterodactylServerCreatorProvider extends ServiceProvider
+class BangerGamesServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
