@@ -1,11 +1,11 @@
 <?php
 
-namespace BangerGames\PteroDactylServerCreator\Commands;
+namespace BangerGames\ServerCreator\Commands;
 
 
 use Illuminate\Console\Command;
 
-class PterodactylServerCreatorProvider extends Command
+class ServerCreate extends Command
 {
     /**
      * The name and signature of the console command.
