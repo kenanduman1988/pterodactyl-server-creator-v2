@@ -18,12 +18,6 @@
         "hcgcloud/pterodactyl-sdk": "dev-develop",
         "bangergames/steam-game-server-login-token": "dev-master"
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url":  "https://github.com/bangergames/pterodactyl-sdk"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "BangerGames\\ServerCreator\\": "src/"
