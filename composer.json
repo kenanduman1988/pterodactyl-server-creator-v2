@@ -24,7 +24,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "BangerGames\\PterodactylServerCreatorProvider"
+                "BangerGames\\PteroDactylServerCreator\\PterodactylServerCreatorProvider"
             ]
         }
     },
