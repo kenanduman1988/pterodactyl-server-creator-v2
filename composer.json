@@ -1,0 +1,32 @@
+{
+    "name": "bangergames/pterodactyl-server-creator",
+    "description": "Pterodactyl server creator for Laravel",
+    "homepage": "https://github.com/bangergames/pterodactyl-server-creator",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kenan Duman",
+            "email": "kenanduman1988@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8",
+        "guzzlehttp/guzzle": "^6.2 || ^7.0",
+    },
+    "autoload": {
+        "psr-4": {
+            "BangerGames\\PteroDactylServerCreator\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BangerGames\\PterodactylServerCreatorProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
