@@ -1,6 +1,6 @@
 <?php
 
-namespace BangerGames\PteroDactylServerCreator;
+namespace BangerGames\PterodactylServerCreator;
 
 use Illuminate\Support\ServiceProvider;
 
