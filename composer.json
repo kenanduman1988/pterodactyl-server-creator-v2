@@ -15,8 +15,15 @@
         "guzzlehttp/guzzle": "^6.2 || ^7.0",
         "illuminate/support": "~5.6 || ~6.0 || ~7.0 || ~8.0",
         "illuminate/console": "^6.0|^7.0|^8.0",
+        "hcgcloud/pterodactyl-sdk": "dev-develop",
         "bangergames/steam-game-server-login-token": "dev-master"
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url":  "https://github.com/bangergames/pterodactyl-sdk"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "BangerGames\\ServerCreator\\": "src/"
