@@ -2,6 +2,7 @@
 
 namespace BangerGames\ServerCreator;
 
+use BangerGames\ServerCreator\Commands\ServerCreate;
 use Illuminate\Support\ServiceProvider;
 
 class BangerGamesServiceProvider extends ServiceProvider
@@ -11,6 +12,10 @@ class BangerGamesServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+//        if ($this->app->runningInConsole()) {
+//            $this->commands([
+//                ServerCreate::class,
+//            ]);
+//        }
     }
 }
