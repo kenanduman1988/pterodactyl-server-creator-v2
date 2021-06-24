@@ -19,7 +19,7 @@ class ServerCreate extends Command
      *
      * @var string
      */
-    protected $description = 'Create command';
+    protected $description = 'Create command for pterodactyl';
 
 
 
