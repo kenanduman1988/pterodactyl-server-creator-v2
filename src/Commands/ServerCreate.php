@@ -6,8 +6,6 @@ namespace BangerGames\ServerCreator\Commands;
 use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
 use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Panel\Panel;
-use BangerGames\SteamGameServerLoginToken\TokenService;
-use HCGCloud\Pterodactyl\Resources\Allocation;
 use Illuminate\Console\Command;
 
 class ServerCreate extends Command
