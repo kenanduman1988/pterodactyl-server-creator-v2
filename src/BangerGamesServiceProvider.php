@@ -18,9 +18,5 @@ class BangerGamesServiceProvider extends ServiceProvider
                 ServerCreate::class,
             ]);
         }
-        if ($this->app->runningInConsole()) {
-            // Export the migration
-
-        }
     }
 }
