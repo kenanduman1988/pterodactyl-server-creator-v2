@@ -12,10 +12,10 @@ class BangerGamesServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-//        if ($this->app->runningInConsole()) {
-//            $this->commands([
-//                ServerCreate::class,
-//            ]);
-//        }
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ServerCreate::class,
+            ]);
+        }
     }
 }
