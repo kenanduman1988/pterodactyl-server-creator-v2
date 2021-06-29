@@ -39,12 +39,6 @@ class ServerCreate extends Command
      */
     public function handle()
     {
-//        $service = new TokenService();
-//        $accountList = $service->getAccountList();
-//        $servers = $accountList->response->servers ?? [];
-//        foreach ($servers as $server) {
-//            var_dump($service->deleteAccount($server->steamid));
-//        }
         $panel = new Panel();
         $serverCount = $this->option('serverCount');
         $nodeId = $this->option('nodeId');
