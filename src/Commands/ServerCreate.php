@@ -3,6 +3,8 @@
 namespace BangerGames\ServerCreator\Commands;
 
 
+use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
+use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Panel\Panel;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use HCGCloud\Pterodactyl\Resources\Allocation;
@@ -50,11 +52,23 @@ class ServerCreate extends Command
         $bar = $this->output->createProgressBar($serverCount);
         $bar->start();
         for ($i=1;$i<=$serverCount;$i++) {
-            $newServer = $panel->createServer($nodeId, [
-                'skip_scripts' => $skipScripts
-            ]);
+            try{
+                $newServer = $panel->createServer($nodeId, [
+                    'skip_scripts' => $skipScripts
+                ]);
+            } catch (AllocationNotFoundException $e) {
+                $this->error($e->getMessage());
+                $bar->finish();
+                break;
+            } catch (NodeNotFoundException $e) {
+                $this->error($e->getMessage());
+                $bar->finish();
+                break;
+            }
+
             $bar->advance();
         }
         $bar->finish();
+        $this->line('Ended');
     }
 }
