@@ -4,6 +4,7 @@ namespace BangerGames\ServerCreator\Panel;
 
 use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
 use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
+use BangerGames\ServerCreator\Models\PanelServer;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use HCGCloud\Pterodactyl\Exceptions\NotFoundException;
 use HCGCloud\Pterodactyl\Exceptions\ValidationException;
@@ -109,6 +110,8 @@ class Panel
             throw new AllocationNotFoundException();
         }
         try {
+            $panelServer = PanelServer::create();
+
             $user = $this->panel->users->get(self::DEFAULT_USER_ID);
             $egg = $this->panel->nest_eggs->get(self::DEFAULT_NEST_ID, self::DEFAULT_EGG_ID);
 
@@ -117,6 +120,7 @@ class Panel
             $steamAcc = $createToken->response->login_token;
             $data = [
                 "name" => $name,
+                'external_id' => (string)$panelServer->id,
                 "user" => $user->id,
                 "egg" => $egg->id,
                 "docker_image" => $egg->docker_image,
@@ -152,10 +156,23 @@ class Panel
             if ($data['skip_scripts'] === false) {
                 $data['name'] = $data['name'] . '-installed';
             }
-            return $this->panel->servers->create($data);
+            $newServer = $this->panel->servers->create($data);
 
-        } catch (ValidationException $exception) {
+            $panelServer->update([
+               'server_id' => $newServer->id,
+               'uuid' => $newServer->uuid,
+               'status' => $newServer->status,
+               'suspended' => $newServer->suspended,
+                'data' => $newServer->all()
+            ]);
+
+            return $newServer;
+
+        } catch (ValidationException $e) {
+            dd($e->errors());
             return null;
+        } catch (\Exception $e) {
+            dd($e->getMessage());
         }
     }
 }

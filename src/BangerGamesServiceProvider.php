@@ -13,9 +13,14 @@ class BangerGamesServiceProvider extends ServiceProvider
     public function boot()
     {
         if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(__DIR__ . '/Migrations');
             $this->commands([
                 ServerCreate::class,
             ]);
+        }
+        if ($this->app->runningInConsole()) {
+            // Export the migration
+
         }
     }
 }

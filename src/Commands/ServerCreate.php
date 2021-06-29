@@ -48,6 +48,7 @@ class ServerCreate extends Command
                 $newServer = $panel->createServer($nodeId, [
                     'skip_scripts' => $skipScripts
                 ]);
+                $this->line(sprintf('Server %s was created', $newServer->name));
             } catch (AllocationNotFoundException $e) {
                 $this->error($e->getMessage());
                 $bar->finish();
@@ -61,6 +62,6 @@ class ServerCreate extends Command
             $bar->advance();
         }
         $bar->finish();
-        $this->line('Ended');
+        $this->line('Done');
     }
 }
