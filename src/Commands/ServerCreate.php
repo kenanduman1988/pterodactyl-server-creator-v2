@@ -22,6 +22,7 @@ class ServerCreate extends Command
     {--serverCount=1 : Server count}
     {--nodeId=2 : Node id}
     {--skipScripts=true : Skip scripts}
+    {--mountAll=true : Mount All Available Mounts}
     ';
 
     /**
@@ -44,6 +45,7 @@ class ServerCreate extends Command
         $serverCount = $this->option('serverCount');
         $nodeId = $this->option('nodeId');
         $skipScripts = filter_var($this->option('skipScripts'), FILTER_VALIDATE_BOOLEAN);
+        $mountAll = filter_var($this->option('mountAll'), FILTER_VALIDATE_BOOLEAN);
         $bar = $this->output->createProgressBar($serverCount);
         $bar->start();
         for ($i=1;$i<=$serverCount;$i++) {
@@ -51,16 +53,19 @@ class ServerCreate extends Command
                 $newServer = $panel->createServer($nodeId, [
                     'skip_scripts' => $skipScripts
                 ]);
-                // I'm not sure if we should this before or after we copy the csgo files into docker directory
-                $mountList = MountRepository::getMountListForServer($newServer);
-                foreach ($mountList as $mount)
+                if ($mountAll)
                 {
-                    $mountServer = (new MountServer())->forceFill([
-                        'mount_id' => $mount->id,
-                        'server_id' => $newServer->id,
-                    ]);
-                    $mountServer->saveOrFail();
+                    $mountList = MountRepository::getMountListForServer($newServer);
+                    foreach ($mountList as $mount)
+                    {
+                        $mountServer = (new MountServer())->forceFill([
+                            'mount_id' => $mount->id,
+                            'server_id' => $newServer->id,
+                        ]);
+                        $mountServer->saveOrFail();
+                    }
                 }
+
 
                 $this->line(sprintf('Server %s was created', $newServer->name));
             } catch (AllocationNotFoundException $e) {
