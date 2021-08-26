@@ -92,6 +92,7 @@ class Panel
 
     public function syncLocations()
     {
+        PanelLocation::truncate();
         $locations = $this->mergePagination($this->panel->locations);
         /** @var Location $location */
         foreach ($locations as $location) {
@@ -107,6 +108,7 @@ class Panel
 
     public function syncServers()
     {
+        PanelServer::truncate();
         $servers = $this->mergePagination($this->panel->servers);
         /** @var Server $location */
         foreach ($servers as $server) {
@@ -122,9 +124,17 @@ class Panel
         }
     }
 
+    public function deleteServer(PanelServer $panelServer)
+    {
+        if ($panelServer->server_id) {
+            return $this->panel->servers->forceDelete($panelServer->server_id);
+        }
+    }
+
 
     public function syncNodes()
     {
+        PanelNode::truncate();
         $nodes = $this->mergePagination($this->panel->nodes);
         /** @var Node $node */
         foreach ($nodes as $node) {

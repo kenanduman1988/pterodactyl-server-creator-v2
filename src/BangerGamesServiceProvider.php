@@ -5,6 +5,8 @@ namespace BangerGames\ServerCreator;
 use BangerGames\ServerCreator\Commands\PanelSyncCommand;
 use BangerGames\ServerCreator\Commands\ServerCreateCommand;
 use BangerGames\ServerCreator\Console\Kernel;
+use BangerGames\ServerCreator\Models\PanelServer;
+use BangerGames\ServerCreator\Observers\PanelServerObserver;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,8 +27,10 @@ class BangerGamesServiceProvider extends ServiceProvider
             // Cron jobs
             $this->app->booted(function () {
                 $schedule = app(Schedule::class);
-                $schedule->command('bangergames:panel-sync')->everyMinute();
+                $schedule->command('bangergames:panel-sync')->everyFifteenMinutes();
             });
         }
+
+        PanelServer::observe(PanelServerObserver::class);
     }
 }
