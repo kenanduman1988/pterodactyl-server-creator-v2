@@ -2,7 +2,10 @@
 
 namespace BangerGames\ServerCreator;
 
-use BangerGames\ServerCreator\Commands\ServerCreate;
+use BangerGames\ServerCreator\Commands\PanelSyncCommand;
+use BangerGames\ServerCreator\Commands\ServerCreateCommand;
+use BangerGames\ServerCreator\Console\Kernel;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 class BangerGamesServiceProvider extends ServiceProvider
@@ -15,8 +18,15 @@ class BangerGamesServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__ . '/Migrations');
             $this->commands([
-                ServerCreate::class,
+                ServerCreateCommand::class,
+                PanelSyncCommand::class,
             ]);
+
+            // Cron jobs
+            $this->app->booted(function () {
+                $schedule = app(Schedule::class);
+                $schedule->command('bangergames:panel-sync')->everyMinute();
+            });
         }
     }
 }

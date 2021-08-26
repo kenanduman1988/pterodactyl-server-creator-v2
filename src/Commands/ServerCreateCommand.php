@@ -9,7 +9,7 @@ use BangerGames\ServerCreator\Panel\Panel;
 use Illuminate\Console\Command;
 
 
-class ServerCreate extends Command
+class ServerCreateCommand extends Command
 {
     /**
      * The name and signature of the console command.

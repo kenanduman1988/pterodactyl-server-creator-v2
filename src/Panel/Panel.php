@@ -4,11 +4,17 @@ namespace BangerGames\ServerCreator\Panel;
 
 use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
 use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
+use BangerGames\ServerCreator\Models\PanelLocation;
+use BangerGames\ServerCreator\Models\PanelNode;
 use BangerGames\ServerCreator\Models\PanelServer;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use HCGCloud\Pterodactyl\Exceptions\NotFoundException;
 use HCGCloud\Pterodactyl\Exceptions\ValidationException;
+use HCGCloud\Pterodactyl\Managers\LocationManager;
+use HCGCloud\Pterodactyl\Managers\NodeManager;
+use HCGCloud\Pterodactyl\Managers\ServerManager;
 use HCGCloud\Pterodactyl\Resources\Allocation;
+use HCGCloud\Pterodactyl\Resources\Location;
 use HCGCloud\Pterodactyl\Resources\Node;
 use HCGCloud\Pterodactyl\Resources\Server;
 
@@ -39,32 +45,23 @@ class Panel
     }
 
     /**
-     * @param Allocation|Node|Server $resource
+     * @param NodeManager|NodeAllocationManager|ServerManager|LocationManager $resource
      * @param int $nodeId
      * @return array
      */
-    private function mergePagination($resource, int $nodeId): array
+    private function mergePagination($resource, int $nodeId = null): array
     {
-        $page1 = $this->panel->node_allocations->paginate($nodeId, 1);
+        $page1 = $nodeId ? $resource->paginate($nodeId, 1) : $resource->paginate(1);
         $data = $page1->all();
 
         $totalPages = $page1->meta()['pagination']['total_pages'];
         if ($totalPages > 1) {
-            for ($page=2; $page<=$totalPages;$page++) {
-                $pageData = $this->panel->node_allocations->paginate($nodeId, $page)->all();
+            for ($page = 2; $page <= $totalPages; $page++) {
+                $pageData = $nodeId ? $resource->paginate($nodeId, $page)->all() : $resource->paginate($page)->all();
                 $data = array_merge($data, $pageData);
             }
         }
         return $data;
-    }
-
-    /**
-     * @param int $nodeId
-     * @return array
-     */
-    public function listAllocations(int $nodeId): array
-    {
-        return $this->mergePagination($this->panel->node_allocations, $nodeId);
     }
 
     /**
@@ -74,7 +71,7 @@ class Panel
     public function getAvailableAllocation($nodeId): ?Allocation
     {
         /** @var Allocation[] $allocations */
-        $allocations = $this->listAllocations($nodeId);
+        $allocations = $this->mergeAllocationPagination($this->panel->node_allocations, $nodeId);
         foreach ($allocations as $allocation) {
             if (!$allocation->assigned) {
                 return $allocation;
@@ -91,6 +88,56 @@ class Panel
     {
         $createToken = $this->tokenService->createAccount(730, $name);
         return $createToken->response->login_token ?? null;
+    }
+
+    public function syncLocations()
+    {
+        $locations = $this->mergePagination($this->panel->locations);
+        /** @var Location $location */
+        foreach ($locations as $location) {
+            PanelLocation::updateOrCreate([
+                'external_id' => $location->id
+            ], [
+                'external_id' => $location->id,
+                'short_code' => $location->short,
+                'description' => $location->long,
+            ]);
+        }
+    }
+
+    public function syncServers()
+    {
+        $servers = $this->mergePagination($this->panel->servers);
+        /** @var Server $location */
+        foreach ($servers as $server) {
+            PanelServer::updateOrCreate([
+                'server_id' => $server->id
+            ], [
+                'server_id' => $server->id,
+                'uuid' => $server->uuid,
+                'status' => $server->status ?? '-',
+                'suspended' => $server->suspended,
+                'data' => $server->all()
+            ]);
+        }
+    }
+
+
+    public function syncNodes()
+    {
+        $nodes = $this->mergePagination($this->panel->nodes);
+        /** @var Node $node */
+        foreach ($nodes as $node) {
+            PanelNode::updateOrCreate([
+                'external_id' => $node->id
+            ], [
+                'external_id' => $node->id,
+                'external_location_id' => $node->location_id,
+                'name' => $node->name,
+                'uuid' => $node->uuid,
+                'description' => $node->description,
+            ]);
+        }
     }
 
     /**
@@ -126,10 +173,10 @@ class Panel
                 "docker_image" => $egg->docker_image,
                 "skip_scripts" => true,
                 "environment" => [
-                    "SRCDS_MAP"=> "de_dust2",
-                    "STEAM_ACC"=> $steamAcc,
-                    "SRCDS_APPID"=> "740",
-                    "GOTV_PORT"=> 28 . substr($allocation->port, 2),
+                    "SRCDS_MAP" => "de_dust2",
+                    "STEAM_ACC" => $steamAcc,
+                    "SRCDS_APPID" => "740",
+                    "GOTV_PORT" => 28 . substr($allocation->port, 2),
                     "STARTUP" => $egg->startup
                 ],
                 "limits" => [
@@ -144,7 +191,7 @@ class Panel
                     "databases" => 0,
                     "backups" => 0
                 ],
-                "allocation"=> [
+                "allocation" => [
                     "default" => $allocation->id
                 ],
                 "startup" => $egg->startup,
@@ -159,10 +206,10 @@ class Panel
             $newServer = $this->panel->servers->create($data);
 
             $panelServer->update([
-               'server_id' => $newServer->id,
-               'uuid' => $newServer->uuid,
-               'status' => $newServer->status,
-               'suspended' => $newServer->suspended,
+                'server_id' => $newServer->id,
+                'uuid' => $newServer->uuid,
+                'status' => $newServer->status,
+                'suspended' => $newServer->suspended,
                 'data' => $newServer->all()
             ]);
 
