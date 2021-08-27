@@ -71,7 +71,7 @@ class Panel
     public function getAvailableAllocation($nodeId): ?Allocation
     {
         /** @var Allocation[] $allocations */
-        $allocations = $this->mergeAllocationPagination($this->panel->node_allocations, $nodeId);
+        $allocations = $this->mergePagination($this->panel->node_allocations, $nodeId);
         foreach ($allocations as $allocation) {
             if (!$allocation->assigned) {
                 return $allocation;
@@ -102,13 +102,13 @@ class Panel
                 'external_id' => $location->id,
                 'short_code' => $location->short,
                 'description' => $location->long,
+                'data' => $location->all(),
             ]);
         }
     }
 
     public function syncServers()
     {
-        PanelServer::truncate();
         $servers = $this->mergePagination($this->panel->servers);
         /** @var Server $location */
         foreach ($servers as $server) {
@@ -116,18 +116,30 @@ class Panel
                 'server_id' => $server->id
             ], [
                 'server_id' => $server->id,
+                'name' => $server->name,
                 'uuid' => $server->uuid,
                 'status' => $server->status ?? '-',
                 'suspended' => $server->suspended,
-                'data' => $server->all()
+                'data' => $server->all(),
             ]);
         }
     }
 
-    public function deleteServer(PanelServer $panelServer)
+    public function deleteServer(PanelServer $panelServer): void
     {
-        if ($panelServer->server_id) {
-            return $this->panel->servers->forceDelete($panelServer->server_id);
+        if (!$panelServer->server_id) {
+            return;
+        }
+        try {
+            $check = $this->panel->servers->get($panelServer->server_id);
+            if ($check) {
+                $this->panel->servers->forceDelete($panelServer->server_id);
+                if ($panelServer->steam_id) {
+                    $delete = $this->tokenService->deleteAccount($panelServer->steam_id);
+                }
+            }
+        } catch (\Exception $e) {
+            // TODO: send slack notification
         }
     }
 
@@ -146,6 +158,7 @@ class Panel
                 'name' => $node->name,
                 'uuid' => $node->uuid,
                 'description' => $node->description,
+                'data' => $node->all(),
             ]);
         }
     }
@@ -175,6 +188,7 @@ class Panel
             $name = sprintf('%s-%s', $node->name, $allocation->port);
             $createToken = $this->tokenService->createAccount(730, $name);
             $steamAcc = $createToken->response->login_token;
+            $steamid = $createToken->response->steamid;
             $data = [
                 "name" => $name,
                 'external_id' => (string)$panelServer->id,
@@ -216,7 +230,9 @@ class Panel
             $newServer = $this->panel->servers->create($data);
 
             $panelServer->update([
+                'steam_id' => $steamid,
                 'server_id' => $newServer->id,
+                'name' => $newServer->name,
                 'uuid' => $newServer->uuid,
                 'status' => $newServer->status,
                 'suspended' => $newServer->suspended,

@@ -16,14 +16,18 @@ use Illuminate\Database\Eloquent\Model;
  * @property array|null $data
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $steam_id
+ * @property string|null $name
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer query()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereData($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereServerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereSteamId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereSuspended($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereUuid($value)
@@ -38,6 +42,8 @@ class PanelServer extends Model
         'uuid',
         'status',
         'suspended',
+        'steam_id',
+        'name',
         'data',
     ];
 

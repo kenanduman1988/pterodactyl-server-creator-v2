@@ -11,9 +11,10 @@ use Carbon\Carbon;
 
 class PanelServerObserver
 {
-    public function deleted(PanelServer $panelServer)
+    public function deleting(PanelServer $panelServer)
     {
         $panel = new Panel();
         $panel->deleteServer($panelServer);
+        
     }
 }
