@@ -18,13 +18,17 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $steam_id
  * @property string|null $name
+ * @property int|null $match_id
+ * @property int|null $panel_node_id
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer query()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereData($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereMatchId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelServer wherePanelNodeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereServerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereSteamId($value)
@@ -43,6 +47,8 @@ class PanelServer extends Model
         'status',
         'suspended',
         'steam_id',
+        'match_id',
+        'panel_node_id',
         'name',
         'data',
     ];

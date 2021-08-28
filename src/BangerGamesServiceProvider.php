@@ -27,7 +27,7 @@ class BangerGamesServiceProvider extends ServiceProvider
             // Cron jobs
             $this->app->booted(function () {
                 $schedule = app(Schedule::class);
-                $schedule->command('bangergames:panel-sync')->everyFifteenMinutes();
+                $schedule->command('bangergames:panel-sync')->everyFiveMinutes();
             });
         }
 

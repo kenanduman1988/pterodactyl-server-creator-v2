@@ -38,10 +38,23 @@ class Panel
      * Panel constructor.
      * @throws \HCGCloud\Pterodactyl\Exceptions\InvaildApiTypeException
      */
-    public function __construct()
+    public function __construct($isClient = false)
     {
-        $this->panel = new \HCGCloud\Pterodactyl\Pterodactyl(env('PTERODACTYL_BASE_URI'), env('PTERODACTYL_API_KEY'));
+        $this->setPanel($isClient);
         $this->tokenService = new TokenService();
+    }
+
+    public function setPanel($isClient = false)
+    {
+        $key = $isClient ?
+            env('PTERODACTYL_CLIENT_API_KEY') :
+            env('PTERODACTYL_API_KEY');
+
+        $this->panel = new \HCGCloud\Pterodactyl\Pterodactyl(
+            env('PTERODACTYL_BASE_URI'),
+            $key,
+            $isClient ? 'client' : 'application'
+        );
     }
 
     /**
@@ -112,10 +125,12 @@ class Panel
         $servers = $this->mergePagination($this->panel->servers);
         /** @var Server $location */
         foreach ($servers as $server) {
+            $panelNode = PanelNode::firstWhere('external_id', $server->node);
             PanelServer::updateOrCreate([
                 'server_id' => $server->id
             ], [
                 'server_id' => $server->id,
+                'panel_node_id' => $panelNode->id,
                 'name' => $server->name,
                 'uuid' => $server->uuid,
                 'status' => $server->status ?? '-',
@@ -143,6 +158,24 @@ class Panel
         }
     }
 
+    public function powerServer(PanelServer $panelServer, $signal): void
+    {
+        if (!$panelServer->server_id) {
+            return;
+        }
+        try {
+            $this->setPanel();
+            /** @var Server $check */
+            $check = $this->panel->servers->get($panelServer->server_id);
+            if ($check) {
+                $this->setPanel(true);
+                $power = $this->panel->servers->power($check->identifier, $signal);
+            }
+        } catch (\Exception $e) {
+            // TODO: send slack notification
+        }
+    }
+
 
     public function syncNodes()
     {
@@ -150,9 +183,11 @@ class Panel
         $nodes = $this->mergePagination($this->panel->nodes);
         /** @var Node $node */
         foreach ($nodes as $node) {
+            $panelLocation = PanelLocation::firstWhere('external_id', $node->location_id);
             PanelNode::updateOrCreate([
                 'external_id' => $node->id
             ], [
+                'panel_location_id' => $panelLocation->id,
                 'external_id' => $node->id,
                 'external_location_id' => $node->location_id,
                 'name' => $node->name,
@@ -201,7 +236,7 @@ class Panel
                     "STEAM_ACC" => $steamAcc,
                     "SRCDS_APPID" => "740",
                     "GOTV_PORT" => 28 . substr($allocation->port, 2),
-                    "STARTUP" => $egg->startup
+                    "STARTUP" => $egg->startup,
                 ],
                 "limits" => [
                     "memory" => 0,
@@ -222,17 +257,21 @@ class Panel
                 "description" => sprintf('server with %s port on %s node', $allocation->port, $node->name),
                 "start_on_completion" => false
             ];
+//            dd($data);
 
             $data = array_merge($data, $extraData);
             if ($data['skip_scripts'] === false) {
                 $data['name'] = $data['name'] . '-installed';
             }
+//            dd(json_encode($data));
             $newServer = $this->panel->servers->create($data);
+            $panelNode = PanelNode::firstWhere('external_id', $newServer->node);
 
             $panelServer->update([
                 'steam_id' => $steamid,
                 'server_id' => $newServer->id,
                 'name' => $newServer->name,
+                'panel_node_id' => $panelNode->id,
                 'uuid' => $newServer->uuid,
                 'status' => $newServer->status,
                 'suspended' => $newServer->suspended,

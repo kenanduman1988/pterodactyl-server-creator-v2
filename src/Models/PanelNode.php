@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array|null $data
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int|null $panel_location_id
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode query()
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode whereExternalLocationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelNode wherePanelLocationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelNode whereUuid($value)
  * @mixin \Eloquent
@@ -37,6 +39,7 @@ class PanelNode extends Model
 
     protected $fillable = [
         'external_id',
+        'panel_location_id',
         'external_location_id',
         'name',
         'uuid',

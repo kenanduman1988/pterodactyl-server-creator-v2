@@ -20,7 +20,8 @@ class ServerCreateCommand extends Command
     {--serverCount=1 : Server count}
     {--nodeId=2 : Node id}
     {--skipScripts=true : Skip scripts}
-   
+    {--mountAll=true : Auto mount}
+
     ';
 
     /**
@@ -43,12 +44,14 @@ class ServerCreateCommand extends Command
         $serverCount = $this->option('serverCount');
         $nodeId = $this->option('nodeId');
         $skipScripts = filter_var($this->option('skipScripts'), FILTER_VALIDATE_BOOLEAN);
+        $mountAll = filter_var($this->option('mountAll'), FILTER_VALIDATE_BOOLEAN);
         $bar = $this->output->createProgressBar($serverCount);
         $bar->start();
         for ($i=1;$i<=$serverCount;$i++) {
             try{
                 $newServer = $panel->createServer($nodeId, [
                     'skip_scripts' => $skipScripts,
+                    'mount_all' => $mountAll,
                 ]);
                 $this->line(sprintf('Server %s was created', $newServer->name));
             } catch (AllocationNotFoundException $e) {
