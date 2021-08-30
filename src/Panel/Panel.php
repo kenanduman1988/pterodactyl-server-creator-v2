@@ -257,7 +257,6 @@ class Panel
                 "description" => sprintf('server with %s port on %s node', $allocation->port, $node->name),
                 "start_on_completion" => false
             ];
-//            dd($data);
 
             $data = array_merge($data, $extraData);
             if ($data['skip_scripts'] === false) {
