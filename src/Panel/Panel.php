@@ -138,7 +138,6 @@ class Panel
                 'data' => $server->all(),
             ]);
         }
-
     }
 
     public function deleteNotExistsServers()
@@ -311,7 +310,7 @@ class Panel
         }
     }
 
-    private function isSteamIdBusy(string $steamId)
+    private function isSteamIdBusy($steamId)
     {
         $panelServer = PanelServer::firstWhere('steam_id', $steamId);
         return $panelServer ? true : false;
@@ -325,7 +324,7 @@ class Panel
         foreach ($servers as $server) {
             $steamId = $server->steamid;
             if (!$this->isSteamIdBusy($steamId)) {
-                $tokenService->deleteAccount($steamId);
+//                $tokenService->deleteAccount($steamId);
             }
         }
     }
