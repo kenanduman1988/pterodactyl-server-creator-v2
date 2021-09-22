@@ -45,6 +45,9 @@ class PanelSyncCommand extends Command
         $panel->syncServers();
         $this->line('Servers are synced');
 
+        $panel->syncSteamTokens();
+        $this->line('Steam ids are synced');
+
 
         $this->line('Done');
     }

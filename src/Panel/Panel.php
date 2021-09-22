@@ -286,4 +286,23 @@ class Panel
             dd($e->getMessage());
         }
     }
+
+    private function isSteamIdBusy(int $steamId)
+    {
+        $panelServer = PanelServer::where('steam_id', $steamId)->first();
+        return $panelServer ? true : false;
+    }
+
+    public function syncSteamTokens()
+    {
+        $tokenService = new TokenService();
+        $accountList = $tokenService->getAccountList();
+        $servers = $accountList->response->servers ?? [];
+        foreach ($servers as $server) {
+            $steamId = $server->steamid;
+            if (!$this->isSteamIdBusy($steamId)) {
+                $tokenService->deleteAccount($steamId);
+            }
+        }
+    }
 }
