@@ -138,6 +138,25 @@ class Panel
                 'data' => $server->all(),
             ]);
         }
+
+        $panelServers = PanelServer::all();
+        foreach ($panelServers as $panelServer) {
+            if (!$this->isServerExistsInPanel($servers, $panelServer)) {
+                $panelServer->delete();
+            }
+        }
+    }
+
+    private function isServerExistsInPanel(array $servers, PanelServer $panelServer): bool
+    {
+        /** @var Server $server */
+        foreach ($servers as $server) {
+            if ($server->id === $panelServer->server_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function deleteServer(PanelServer $panelServer): void
@@ -287,9 +306,9 @@ class Panel
         }
     }
 
-    private function isSteamIdBusy(int $steamId)
+    private function isSteamIdBusy(string $steamId)
     {
-        $panelServer = PanelServer::where('steam_id', $steamId)->first();
+        $panelServer = PanelServer::firstWhere('steam_id', $steamId);
         return $panelServer ? true : false;
     }
 
