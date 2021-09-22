@@ -139,19 +139,24 @@ class Panel
             ]);
         }
 
+    }
+
+    public function deleteNotExistsServers()
+    {
+        $servers = $this->mergePagination($this->panel->servers);
         $panelServers = PanelServer::all();
         foreach ($panelServers as $panelServer) {
-            if (!$this->isServerExistsInPanel($servers, $panelServer)) {
+            if (!$this->isServerExistsInPanel($servers, $panelServer->server_id)) {
                 $panelServer->delete();
             }
         }
     }
 
-    private function isServerExistsInPanel(array $servers, PanelServer $panelServer): bool
+    private function isServerExistsInPanel(array $servers, $serverId): bool
     {
         /** @var Server $server */
         foreach ($servers as $server) {
-            if ($server->id === $panelServer->server_id) {
+            if ($server->id == $serverId) {
                 return true;
             }
         }

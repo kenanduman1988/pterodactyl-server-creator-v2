@@ -48,6 +48,9 @@ class PanelSyncCommand extends Command
         $panel->syncSteamTokens();
         $this->line('Steam ids are synced');
 
+        $panel->deleteNotExistsServers();
+        $this->line('Not exists servers are deleted');
+
 
         $this->line('Done');
     }
