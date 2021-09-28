@@ -2,12 +2,14 @@
 
 namespace BangerGames\ServerCreator\Panel;
 
+use App\Jobs\PanelServerPowerJob;
 use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
 use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Models\PanelLocation;
 use BangerGames\ServerCreator\Models\PanelNode;
 use BangerGames\ServerCreator\Models\PanelServer;
 use BangerGames\SteamGameServerLoginToken\TokenService;
+use Carbon\Carbon;
 use HCGCloud\Pterodactyl\Exceptions\NotFoundException;
 use HCGCloud\Pterodactyl\Exceptions\ValidationException;
 use HCGCloud\Pterodactyl\Managers\LocationManager;
@@ -16,6 +18,7 @@ use HCGCloud\Pterodactyl\Managers\ServerManager;
 use HCGCloud\Pterodactyl\Resources\Allocation;
 use HCGCloud\Pterodactyl\Resources\Location;
 use HCGCloud\Pterodactyl\Resources\Node;
+use HCGCloud\Pterodactyl\Resources\Resource;
 use HCGCloud\Pterodactyl\Resources\Server;
 
 /**
@@ -163,17 +166,17 @@ class Panel
         return false;
     }
 
-    public function deleteServer(PanelServer $panelServer): void
+    public function deleteServer($serverId, $steamId): void
     {
-        if (!$panelServer->server_id) {
+        if (!$serverId) {
             return;
         }
         try {
-            $check = $this->panel->servers->get($panelServer->server_id);
+            $check = $this->panel->servers->get($serverId);
             if ($check) {
-                $this->panel->servers->forceDelete($panelServer->server_id);
-                if ($panelServer->steam_id) {
-                    $delete = $this->tokenService->deleteAccount($panelServer->steam_id);
+                $this->panel->servers->forceDelete($serverId);
+                if ($steamId) {
+                    $delete = $this->tokenService->deleteAccount($steamId);
                 }
             }
         } catch (\Exception $e) {
@@ -183,6 +186,9 @@ class Panel
 
     public function powerServer(PanelServer $panelServer, $signal): void
     {
+        if ($panelServer->suspended) {
+            return;
+        }
         if (!$panelServer->server_id) {
             return;
         }
@@ -193,9 +199,72 @@ class Panel
             if ($check) {
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
+                if (in_array($signal, ['restart', 'start'])){
+                    sleep(5);
+                    do {
+                        sleep(1);
+                        /** @var Resource $resourceUsage */
+                        $resourceUsage = $this->getResourceUsage($panelServer);
+                        if (null === $resourceUsage) {
+                            break;
+                        }
+                        if ($resourceUsage->current_state=== 'offline') {
+                            $this->suspendServer($panelServer);
+                            break;
+                        }
+                        if ($resourceUsage->current_state=== 'running') {
+                            break;
+                        }
+                    } while(true);
+                }
             }
         } catch (\Exception $e) {
             // TODO: send slack notification
+        }
+    }
+
+    public function suspendServer(PanelServer $panelServer): void
+    {
+        if (!$panelServer->server_id) {
+            return;
+        }
+        try {
+            $this->setPanel();
+            /** @var Server $check */
+            $check = $this->panel->servers->suspend($panelServer->server_id);
+            $panelServer->suspended = true;
+        } catch (\Exception $e) {
+            // TODO: send slack notification
+        }
+    }
+
+    public function getResourceUsage(PanelServer $panelServer)
+    {
+        if (!$panelServer->server_id) {
+            return;
+        }
+        try {
+            $this->setPanel();
+            /** @var Server $server */
+            $server = $this->panel->servers->get($panelServer->server_id);
+            if ($server) {
+                $this->setPanel(true);
+                return $this->panel->servers->resources($server->identifier);
+            }
+        } catch (\Exception $e) {
+            return null;
+            // TODO: send slack notification
+        }
+    }
+
+    public function powerServersByNode($panelNodeId, $signal = 'restart')
+    {
+        $panelServers = PanelServer::where('panel_node_id', $panelNodeId)->where('suspended', false)->get();
+        /** @var PanelServer $panelServer */
+        foreach ($panelServers as $panelServer) {
+            $job = new PanelServerPowerJob($panelServer->id, $signal);
+            dispatch($job->onQueue('jobs'));
+            sleep(5);
         }
     }
 
@@ -285,7 +354,6 @@ class Panel
             if ($data['skip_scripts'] === false) {
                 $data['name'] = $data['name'] . '-installed';
             }
-//            dd(json_encode($data));
             $newServer = $this->panel->servers->create($data);
             $panelNode = PanelNode::firstWhere('external_id', $newServer->node);
 
@@ -299,6 +367,9 @@ class Panel
                 'suspended' => $newServer->suspended,
                 'data' => $newServer->all()
             ]);
+
+            $job = new PanelServerPowerJob($panelServer->id, 'restart');
+            dispatch($job->delay(Carbon::now()->addMinutes(1))->onQueue('jobs'));
 
             return $newServer;
 
@@ -324,7 +395,7 @@ class Panel
         foreach ($servers as $server) {
             $steamId = $server->steamid;
             if (!$this->isSteamIdBusy($steamId)) {
-//                $tokenService->deleteAccount($steamId);
+                $tokenService->deleteAccount($steamId);
             }
         }
     }

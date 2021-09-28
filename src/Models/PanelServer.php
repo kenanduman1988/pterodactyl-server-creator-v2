@@ -2,6 +2,7 @@
 
 namespace BangerGames\ServerCreator\Models;
 
+use BangerGames\ServerCreator\Panel\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -54,6 +55,7 @@ class PanelServer extends Model
     ];
 
     protected $casts = [
-        'data' => 'json'
+        'data' => 'json',
+        'suspended' => 'boolean'
     ];
 }
