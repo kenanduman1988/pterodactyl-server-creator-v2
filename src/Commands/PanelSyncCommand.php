@@ -34,24 +34,28 @@ class PanelSyncCommand extends Command
      */
     public function handle()
     {
-        $panel = new Panel();
+        try {
+            $panel = new Panel();
 
-        $panel->syncLocations();
-        $this->line('Locations are synced');
+            $panel->syncLocations();
+            $this->line('Locations are synced');
 
-        $panel->syncNodes();
-        $this->line('Nodes are synced');
+            $panel->syncNodes();
+            $this->line('Nodes are synced');
 
-        $panel->syncServers();
-        $this->line('Servers are synced');
+            $panel->syncServers();
+            $this->line('Servers are synced');
 
-        $panel->deleteNotExistsServers();
-        $this->line('Not exists servers are deleted');
+            $panel->deleteNotExistsServers();
+            $this->line('Not exists servers are deleted');
 //
 //        $panel->syncSteamTokens();
 //        $this->line('Steam ids are synced');
 
 
-        $this->line('Done');
+            $this->line('Done');
+        } catch (\Exception $exception) {
+            // TODO: slack notification
+        }
     }
 }
