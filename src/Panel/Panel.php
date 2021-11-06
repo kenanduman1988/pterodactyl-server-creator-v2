@@ -383,7 +383,7 @@ class Panel
             ]);
 
             $job = new PanelServerPowerJob($panelServer->id, 'restart');
-            dispatch($job->delay(Carbon::now()->addMinutes(1))->onQueue('jobs'));
+            dispatch($job->delay(Carbon::now()->addHour())->onQueue('jobs'));
 
             return $newServer;
 
