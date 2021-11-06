@@ -199,7 +199,7 @@ class Panel
             if ($check) {
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
-                if (in_array($signal, ['restart', 'start'])){
+                if (in_array($signal, ['restart', 'start'])) {
                     sleep(5);
                     do {
                         sleep(1);
@@ -208,14 +208,14 @@ class Panel
                         if (null === $resourceUsage) {
                             break;
                         }
-                        if ($resourceUsage->current_state=== 'offline') {
+                        if ($resourceUsage->current_state === 'offline') {
                             $this->suspendServer($panelServer);
                             break;
                         }
-                        if ($resourceUsage->current_state=== 'running') {
+                        if ($resourceUsage->current_state === 'running') {
                             break;
                         }
-                    } while(true);
+                    } while (true);
                 }
             }
         } catch (\Exception $e) {
@@ -225,13 +225,17 @@ class Panel
 
     public function updateEnvironment(PanelServer $panelServer, $key, $value): void
     {
+
         try {
+            $this->setPanel();
+            $server = $this->panel->servers->get($panelServer->server_id);
             $this->setPanel(true);
-            $power = $this->panel->servers->updateStartup($check->identifier, [
+            $response = $this->panel->http->put("servers/{$server->identifier}/startup/variable", [
                 'key' => $key,
                 'value' => $value,
             ]);
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             // TODO: send slack notification
         }
     }
