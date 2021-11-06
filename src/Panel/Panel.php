@@ -29,9 +29,9 @@ class Panel
 {
     public TokenService $tokenService;
 
-    public const DEFAULT_NEST_ID = 2;
+    public const DEFAULT_NEST_ID = 5;
 
-    public const DEFAULT_EGG_ID = 7;
+    public const DEFAULT_EGG_ID = 15;
 
     public const DEFAULT_USER_ID = 1;
 
