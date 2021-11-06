@@ -223,6 +223,19 @@ class Panel
         }
     }
 
+    public function updateEnvironment(PanelServer $panelServer, $key, $value): void
+    {
+        try {
+            $this->setPanel(true);
+            $power = $this->panel->servers->updateStartup($check->identifier, [
+                'key' => $key,
+                'value' => $value,
+            ]);
+        } catch (\Exception $e) {
+            // TODO: send slack notification
+        }
+    }
+
     public function suspendServer(PanelServer $panelServer): void
     {
         if (!$panelServer->server_id) {
@@ -267,7 +280,6 @@ class Panel
             sleep(5);
         }
     }
-
 
     public function syncNodes()
     {
@@ -329,6 +341,8 @@ class Panel
                     "SRCDS_APPID" => "740",
                     "GOTV_PORT" => 28 . substr($allocation->port, 2),
                     "STARTUP" => $egg->startup,
+                    "GAME_MODE" => "2",
+                    "GAME_TYPE" => "0",
                 ],
                 "limits" => [
                     "memory" => 0,
