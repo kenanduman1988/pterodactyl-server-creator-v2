@@ -7,6 +7,7 @@ class CSGO
     const ENV_GAME_MODE = 'GAME_MODE';
     const ENV_BUSY_BY_MATCH = 'BUSY_BY_MATCH';
     const ENV_BUSY_BY_APP = 'BUSY_BY_APP';
+    const ENV_GOTV_PORT = 'GOTV_PORT';
     /**
      * This mapping need for startup command
      * key: teamSize
