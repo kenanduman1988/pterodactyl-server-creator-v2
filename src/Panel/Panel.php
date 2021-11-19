@@ -108,7 +108,6 @@ class Panel
 
     public function syncLocations()
     {
-        PanelLocation::truncate();
         $locations = $this->mergePagination($this->panel->locations);
         /** @var Location $location */
         foreach ($locations as $location) {
