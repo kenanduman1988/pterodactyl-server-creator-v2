@@ -37,6 +37,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereUuid($value)
  * @mixin \Eloquent
+ * @property string|null $rcon_password
+ * @method static \Illuminate\Database\Eloquent\Builder|PanelServer whereRconPassword($value)
  */
 class PanelServer extends Model
 {
@@ -52,6 +54,7 @@ class PanelServer extends Model
         'panel_node_id',
         'name',
         'data',
+        'rcon_password',
     ];
 
     protected $casts = [

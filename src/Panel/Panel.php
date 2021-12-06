@@ -331,6 +331,7 @@ class Panel
             $createToken = $this->tokenService->createAccount(730, $name);
             $steamAcc = $createToken->response->login_token;
             $steamid = $createToken->response->steamid;
+            $rconPassword = $this->generateRconPassword();
             $data = [
                 "name" => $name,
                 'external_id' => (string)$panelServer->id,
@@ -346,6 +347,7 @@ class Panel
                     "STARTUP" => $egg->startup,
                     "GAME_MODE" => "2",
                     "GAME_TYPE" => "0",
+                    "RCON_PASSWORD" => $rconPassword,
                 ],
                 "limits" => [
                     "memory" => 0,
@@ -376,6 +378,7 @@ class Panel
 
             $panelServer->update([
                 'steam_id' => $steamid,
+                'rcon_password' => $rconPassword,
                 'server_id' => $newServer->id,
                 'name' => $newServer->name,
                 'panel_node_id' => $panelNode->id,
@@ -415,5 +418,9 @@ class Panel
                 $tokenService->deleteAccount($steamId);
             }
         }
+    }
+    
+    public function generateRconPassword($length = 16) {
+        return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
     }
 }
