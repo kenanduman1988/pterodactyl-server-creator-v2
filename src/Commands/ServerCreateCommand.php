@@ -3,8 +3,6 @@
 namespace BangerGames\ServerCreator\Commands;
 
 
-use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
-use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Panel\Panel;
 use Illuminate\Console\Command;
 
@@ -54,11 +52,7 @@ class ServerCreateCommand extends Command
                     'mount_all' => $mountAll,
                 ]);
                 $this->line(sprintf('Server %s was created', $newServer->name));
-            } catch (AllocationNotFoundException $e) {
-                $this->error($e->getMessage());
-                $bar->finish();
-                break;
-            } catch (NodeNotFoundException $e) {
+            } catch (\Exception $e) {
                 $this->error($e->getMessage());
                 $bar->finish();
                 break;

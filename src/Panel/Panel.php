@@ -10,6 +10,7 @@ use BangerGames\ServerCreator\Models\PanelNode;
 use BangerGames\ServerCreator\Models\PanelServer;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use Carbon\Carbon;
+use Exception;
 use HCGCloud\Pterodactyl\Exceptions\NotFoundException;
 use HCGCloud\Pterodactyl\Exceptions\ValidationException;
 use HCGCloud\Pterodactyl\Managers\LocationManager;
@@ -62,7 +63,7 @@ class Panel
 
     /**
      * @param NodeManager|NodeAllocationManager|ServerManager|LocationManager $resource
-     * @param int $nodeId
+     * @param int|null $nodeId
      * @return array
      */
     private function mergePagination($resource, int $nodeId = null): array
@@ -98,9 +99,10 @@ class Panel
     }
 
     /**
+     * @param $name
      * @return string|null
      */
-    public function getSteamToken(): ?string
+    public function getSteamToken($name): ?string
     {
         $createToken = $this->tokenService->createAccount(730, $name);
         return $createToken->response->login_token ?? null;
@@ -165,6 +167,9 @@ class Panel
         return false;
     }
 
+    /**
+     * @throws Exception
+     */
     public function deleteServer($serverId, $steamId): void
     {
         if (!$serverId) {
@@ -178,18 +183,23 @@ class Panel
                     $delete = $this->tokenService->deleteAccount($steamId);
                 }
             }
-        } catch (\Exception $e) {
-            // TODO: send slack notification
+        } catch (Exception $e) {
+            throw new Exception($e);
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function powerServer(PanelServer $panelServer, $signal): void
     {
         if ($panelServer->suspended) {
-            return;
+            throw new Exception("Powering server failed: panel server suspended");
+            //return;
         }
         if (!$panelServer->server_id) {
-            return;
+            throw new Exception("Powering server failed: panel server_id empty");
+            //return;
         }
         try {
             $this->setPanel();
@@ -217,14 +227,16 @@ class Panel
                     } while (true);
                 }
             }
-        } catch (\Exception $e) {
-            // TODO: send slack notification
+        } catch (Exception $e) {
+            throw new Exception($e);
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function updateEnvironment(PanelServer $panelServer, $key, $value): void
     {
-
         try {
             $this->setPanel();
             $server = $this->panel->servers->get($panelServer->server_id);
@@ -233,31 +245,38 @@ class Panel
                 'key' => $key,
                 'value' => $value,
             ]);
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            // TODO: send slack notification
+        } catch (Exception $e) {
+            throw new Exception($e);
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function suspendServer(PanelServer $panelServer): void
     {
         if (!$panelServer->server_id) {
-            return;
+            throw new Exception("Suspend server failed: panel server_id empty");
+            //return;
         }
         try {
             $this->setPanel();
             /** @var Server $check */
             $check = $this->panel->servers->suspend($panelServer->server_id);
             $panelServer->suspended = true;
-        } catch (\Exception $e) {
-            // TODO: send slack notification
+        } catch (Exception $e) {
+            throw new Exception($e);
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function getResourceUsage(PanelServer $panelServer)
     {
         if (!$panelServer->server_id) {
-            return;
+            throw new Exception("GetResourceUsage server failed: panel server_id empty");
+            //return;
         }
         try {
             $this->setPanel();
@@ -267,12 +286,15 @@ class Panel
                 $this->setPanel(true);
                 return $this->panel->servers->resources($server->identifier);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            //throw new Exception($e);
             return null;
-            // TODO: send slack notification
         }
+
+        return null;
     }
 
+    //addicted to externally defined job!?
     public function powerServersByNode($panelNodeId, $signal = 'restart')
     {
         $panelServers = PanelServer::where('panel_node_id', $panelNodeId)->where('suspended', false)->get();
@@ -309,6 +331,9 @@ class Panel
      * @param int $nodeId
      * @param array $extraData
      * @return Server|null
+     * @throws NodeNotFoundException
+     * @throws AllocationNotFoundException
+     * @throws Exception
      */
     public function createServer(int $nodeId, array $extraData): ?Server
     {
@@ -394,10 +419,10 @@ class Panel
             return $newServer;
 
         } catch (ValidationException $e) {
-            dd($e->errors());
-            return null;
-        } catch (\Exception $e) {
-            dd($e->getMessage());
+            $error_msg = implode(";",$e->errors());
+            throw new Exception($error_msg);
+        } catch (Exception $e) {
+            throw new Exception($e);
         }
     }
 
@@ -419,7 +444,7 @@ class Panel
             }
         }
     }
-    
+
     public function generateRconPassword($length = 16) {
         return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
     }
