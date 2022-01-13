@@ -257,26 +257,19 @@ class Panel
     {
         if (!$panelServer->server_id) {
             throw new Exception("Suspend server failed: panel server_id empty");
-            //return;
         }
         try {
             $this->setPanel();
-            /** @var Server $check */
-            $check = $this->panel->servers->suspend($panelServer->server_id);
-            $panelServer->suspended = true;
+            $this->panel->servers->suspend($panelServer->server_id);
         } catch (Exception $e) {
             throw new Exception($e);
         }
     }
 
-    /**
-     * @throws Exception
-     */
     public function getResourceUsage(PanelServer $panelServer)
     {
         if (!$panelServer->server_id) {
-            throw new Exception("GetResourceUsage server failed: panel server_id empty");
-            //return;
+            return null;
         }
         try {
             $this->setPanel();
@@ -287,7 +280,6 @@ class Panel
                 return $this->panel->servers->resources($server->identifier);
             }
         } catch (Exception $e) {
-            //throw new Exception($e);
             return null;
         }
 
