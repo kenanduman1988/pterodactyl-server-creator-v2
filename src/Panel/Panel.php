@@ -11,6 +11,7 @@ use BangerGames\ServerCreator\Models\PanelServer;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use Carbon\Carbon;
 use Exception;
+use GuzzleHttp\Client;
 use HCGCloud\Pterodactyl\Exceptions\NotFoundException;
 use HCGCloud\Pterodactyl\Exceptions\ValidationException;
 use HCGCloud\Pterodactyl\Managers\LocationManager;
@@ -38,6 +39,8 @@ class Panel
 
     public \HCGCloud\Pterodactyl\Pterodactyl $panel;
 
+    private Client $httpClient;
+
     /**
      * Panel constructor.
      * @throws \HCGCloud\Pterodactyl\Exceptions\InvaildApiTypeException
@@ -54,10 +57,23 @@ class Panel
             env('PTERODACTYL_CLIENT_API_KEY') :
             env('PTERODACTYL_API_KEY');
 
+        $httpClient = new Client([
+            'base_uri'    => env('PTERODACTYL_BASE_URI'),
+            'http_errors' => false,
+            'connect_timeout' => 10,
+            'timeout' => 20,
+            'debug' => app()->isLocal(),
+            'headers'     => [
+                'Accept'       => 'application/json',
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+
         $this->panel = new \HCGCloud\Pterodactyl\Pterodactyl(
             env('PTERODACTYL_BASE_URI'),
             $key,
-            $isClient ? 'client' : 'application'
+            $isClient ? 'client' : 'application',
+            $httpClient
         );
     }
 
@@ -209,22 +225,27 @@ class Panel
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
                 if (in_array($signal, ['restart', 'start'])) {
-                    sleep(5);
+                    $tries = 6;
                     do {
-                        sleep(1);
+                        $tries--;
+                        sleep(8);
                         /** @var Resource $resourceUsage */
                         $resourceUsage = $this->getResourceUsage($panelServer);
                         if (null === $resourceUsage) {
-                            break;
+                            //error state
+                            continue;
                         }
                         if ($resourceUsage->current_state === 'offline') {
-                            $this->suspendServer($panelServer);
-                            break;
+                            //$this->suspendServer($panelServer);
+                            //error state
+                            continue;
                         }
                         if ($resourceUsage->current_state === 'running') {
-                            break;
+                            return; //we succeeded
                         }
-                    } while (true);
+                    } while ($tries>0);
+                    throw new Exception("Server failed to execute command: $signal");
+                    return;
                 }
             }
         } catch (Exception $e) {
