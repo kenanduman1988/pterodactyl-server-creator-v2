@@ -225,10 +225,10 @@ class Panel
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
                 if (in_array($signal, ['restart', 'start'])) {
-                    $tries = 6;
+                    $tries = 16;
                     do {
                         $tries--;
-                        sleep(8);
+                        sleep(10);
                         /** @var Resource $resourceUsage */
                         $resourceUsage = $this->getResourceUsage($panelServer);
                         if (null === $resourceUsage) {
