@@ -225,7 +225,7 @@ class Panel
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
                 if (in_array($signal, ['restart', 'start'])) {
-                    $tries = 16;
+                    $tries = 24;
                     do {
                         $tries--;
                         sleep(10);
