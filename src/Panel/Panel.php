@@ -29,17 +29,14 @@ use HCGCloud\Pterodactyl\Resources\Server;
  */
 class Panel
 {
-    public TokenService $tokenService;
-
     public const DEFAULT_NEST_ID = 5;
-
     public const DEFAULT_EGG_ID = 15;
-
     public const DEFAULT_USER_ID = 1;
 
+    public TokenService $tokenService;
     public \HCGCloud\Pterodactyl\Pterodactyl $panel;
-
     private Client $httpClient;
+    private int $ownerId;
 
     /**
      * Panel constructor.
@@ -49,7 +46,10 @@ class Panel
     {
         $this->setPanel($isClient);
         $this->tokenService = new TokenService();
-        $this->owner = $this->setOwner();
+        if(!$isClient)
+           $this->ownerId = $this->setOwner();
+        else
+           $this->ownerId = 0;
     }
 
     public function setPanel($isClient = false)
@@ -195,9 +195,12 @@ class Panel
 
     private function isServerExistsInPanel(array $servers, $serverId): bool
     {
+        if($this->ownerId === 0)
+            return false;
+
         /** @var Server $server */
         foreach ($servers as $server) {
-            if (($server->id == $serverId) && ($server->user === $this->owner)) {
+            if (($server->id == $serverId) && ($server->user === $this->ownerId)) {
                 return true;
             }
         }
