@@ -156,6 +156,16 @@ class Panel
         /** @var Server $location */
         foreach ($servers as $server) {
             $panelNode = PanelNode::firstWhere('external_id', $server->node);
+
+            $steamId = null;
+            $rconPass = null;
+            try {
+                $steamId = $server->container->environment->STEAM_ACC;
+                $rconPass = $server->container->environment->RCON_PASSWORD;
+            }
+            catch ( Exception $e) {
+            }
+
             PanelServer::updateOrCreate([
                 'server_id' => $server->id
             ], [
@@ -163,9 +173,9 @@ class Panel
                 'panel_node_id' => $panelNode->id,
                 'name' => $server->name,
                 'uuid' => $server->uuid,
-                'status' => $server->status ?? '-',
-                'suspended' => $server->suspended,
                 'data' => $server->all(),
+                'steam_id' => $steamId,
+                'rcon_password' => $rconPass,
             ]);
         }
     }
@@ -263,7 +273,7 @@ class Panel
     /**
      * @throws Exception
      */
-    public function powerServer(PanelServer $panelServer, $signal): void
+    public function powerServer(PanelServer $panelServer, $signal, $skipWait = false): void
     {
         if ($panelServer->suspended) {
             throw new Exception("Powering server failed: panel server suspended");
@@ -280,7 +290,7 @@ class Panel
             if ($check) {
                 $this->setPanel(true);
                 $power = $this->panel->servers->power($check->identifier, $signal);
-                if (in_array($signal, ['restart', 'start'])) {
+                if (in_array($signal, ['restart', 'start']) && !$skipWait) {
                     $tries = 24;
                     do {
                         $tries--;
