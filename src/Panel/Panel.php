@@ -49,6 +49,7 @@ class Panel
     {
         $this->setPanel($isClient);
         $this->tokenService = new TokenService();
+        $this->owner = $this->setOwner();
     }
 
     public function setPanel($isClient = false)
@@ -140,6 +141,15 @@ class Panel
         }
     }
 
+    private function setOwner()
+    {
+        $users = $this->mergePagination($this->panel->users);
+        $owner = array_first($users, function ($user) {
+            return $user->username === 'csgopanel-' . env('APP_ENV');
+        });
+        return $owner->id;
+    }
+
     public function syncServers()
     {
         $servers = $this->mergePagination($this->panel->servers);
@@ -166,7 +176,9 @@ class Panel
         $panelServers = PanelServer::all();
         foreach ($panelServers as $panelServer) {
             if (!$this->isServerExistsInPanel($servers, $panelServer->server_id)) {
-                $panelServer->delete();
+                PanelServer::withoutEvents(function () use ($panelServer) {
+                    $panelServer->delete();
+                });
             }
         }
     }
@@ -175,7 +187,51 @@ class Panel
     {
         /** @var Server $server */
         foreach ($servers as $server) {
-            if ($server->id == $serverId) {
+            if (($server->id == $serverId) && ($server->user === $this->owner)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function deleteUnusedNodes()
+    {
+        $nodes = PanelNode::all();
+        $panelServerNodes = PanelServer::select('panel_node_id')->distinct()->get();
+        foreach ($nodes as $node) {
+            if (!$this->isNodeUsed($panelServerNodes, $node->id)) {
+                $node->delete();
+            }
+        }
+    }
+
+    private function isNodeUsed($panelServerNodes, $nodeId): bool
+    {
+        foreach ($panelServerNodes as $node) {
+            if ($node->panel_node_id == $nodeId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function deleteUnusedLocations()
+    {
+        $locations = PanelLocation::all();
+        $panelNodeLocations = PanelNode::select('panel_location_id')->distinct()->get();
+        foreach ($locations as $location) {
+            if (!$this->isLocationUsed($panelNodeLocations, $location->id)) {
+                $location->delete();
+            }
+        }
+    }
+
+    private function isLocationUsed($panelNodeLocations, $locationId): bool
+    {
+        foreach ($panelNodeLocations as $location) {
+            if ($location->panel_location_id == $locationId) {
                 return true;
             }
         }
