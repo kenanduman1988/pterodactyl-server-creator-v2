@@ -48,6 +48,12 @@ class PanelSyncCommand extends Command
 
             $panel->deleteNotExistsServers();
             $this->line('Not exists servers are deleted');
+
+            $panel->deleteUnusedNodes();
+            $this->line('Unused nodes deleted');
+
+            $panel->deleteUnusedLocations();
+            $this->line('Unused locations deleted');
 //
 //        $panel->syncSteamTokens();
 //        $this->line('Steam ids are synced');
