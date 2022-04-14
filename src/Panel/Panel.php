@@ -143,11 +143,16 @@ class Panel
 
     private function setOwner()
     {
-        $users = $this->mergePagination($this->panel->users);
-        $owner = array_first($users, function ($user) {
-            return $user->username === 'csgopanel-' . env('APP_ENV');
-        });
-        return $owner->id;
+        try {
+            $users = $this->mergePagination($this->panel->users);
+            $owner = array_first($users, function ($user) {
+                return $user->username === 'csgopanel-' . env('APP_ENV');
+            });
+            return $owner->id;
+        }
+        catch ( Exception $e) {
+            return 0;
+        }
     }
 
     public function syncServers()
@@ -160,8 +165,8 @@ class Panel
             $steamId = null;
             $rconPass = null;
             try {
-                $steamId = $server->container->environment->STEAM_ACC;
-                $rconPass = $server->container->environment->RCON_PASSWORD;
+                $steamId = $server->container['environment']['STEAM_ACC'];
+                $rconPass = $server->container['environment']['RCON_PASSWORD'];
             }
             catch ( Exception $e) {
             }

@@ -13,10 +13,12 @@ use Carbon\Carbon;
 
 class PanelServerObserver
 {
+    /*
     public function deleting(PanelServer $panelServer)
     {
         $job = new PanelServerDeletingJob($panelServer->server_id, $panelServer->steam_id);
         dispatch($job->onQueue('jobs'));
 
     }
+    */
 }
