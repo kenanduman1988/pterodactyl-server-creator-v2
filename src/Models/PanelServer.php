@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $rcon_password
  * @property int|null $status_id
  * @property int|null $version
+ * @property string|null $ip
+ * @property int|null $port
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServer query()
@@ -39,6 +41,8 @@ class PanelServer extends Model
         'name',
         'data',
         'rcon_password',
+        'ip',
+        'port',
     ];
 
     protected $casts = [

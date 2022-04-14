@@ -164,9 +164,13 @@ class Panel
 
             $steamId = null;
             $rconPass = null;
+            $ip = null;
+            $port = null;
             try {
                 $steamId = $server->container['environment']['STEAM_ACC'];
                 $rconPass = $server->container['environment']['RCON_PASSWORD'];
+                $ip = $server->allocationObject['ip_alias'];
+                $port = $server->allocationObject['port'];
             }
             catch ( Exception $e) {
             }
@@ -181,6 +185,8 @@ class Panel
                 'data' => $server->all(),
                 'steam_id' => $steamId,
                 'rcon_password' => $rconPass,
+                'ip' => $ip,
+                'port' => $port,
             ]);
         }
     }
