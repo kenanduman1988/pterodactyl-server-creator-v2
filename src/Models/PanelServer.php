@@ -43,6 +43,8 @@ class PanelServer extends Model
         'rcon_password',
         'ip',
         'port',
+        'status_id',
+        'version',
     ];
 
     protected $casts = [
