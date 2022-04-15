@@ -31,6 +31,6 @@ class CreatePanelServerActivitiesTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('panel_server_activities');
     }
 }

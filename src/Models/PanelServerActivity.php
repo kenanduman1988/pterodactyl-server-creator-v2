@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $panel_server_id
  * @property int|null $action_id
  * @property int|null $status_id
+ * @property int|null $match_id
  * @property array|null $data
  * @property-read \App\Model\PanelServer $server
  * @method static \Illuminate\Database\Eloquent\Builder|PanelServerActivity newModelQuery()
@@ -27,6 +28,7 @@ class PanelServerActivity extends Model
         'panel_server_id',
         'action_id',
         'status_id',
+        'match_id',
         'data',
     ];
 
