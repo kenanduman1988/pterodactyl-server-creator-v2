@@ -158,6 +158,12 @@ class Panel
     public function syncServers()
     {
         $servers = $this->mergePagination($this->panel->servers);
+        foreach ($servers as $key => $server){
+            if($server->user !== $this->ownerId){
+                unset($servers[$key]);
+            }
+        }
+
         /** @var Server $location */
         foreach ($servers as $server) {
             $panelNode = PanelNode::firstWhere('external_id', $server->node);
@@ -346,6 +352,21 @@ class Panel
                 'key' => $key,
                 'value' => $value,
             ]);
+        } catch (Exception $e) {
+            throw new Exception($e);
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function sendConsoleCmd(PanelServer $panelServer, $command): void
+    {
+        try {
+            $this->setPanel();
+            $server = $this->panel->servers->get($panelServer->server_id);
+            $this->setPanel(true);
+            $response = $this->panel->servers->command($server->identifier, $command);
         } catch (Exception $e) {
             throw new Exception($e);
         }
