@@ -37,6 +37,7 @@ class Panel
     public \HCGCloud\Pterodactyl\Pterodactyl $panel;
     private Client $httpClient;
     private int $ownerId;
+    private bool $isClient;
 
     /**
      * Panel constructor.
@@ -44,6 +45,7 @@ class Panel
      */
     public function __construct($isClient = false)
     {
+        $this->isClient = $isClient;
         $this->setPanel($isClient);
         $this->tokenService = new TokenService();
         if(!$isClient)
@@ -54,6 +56,9 @@ class Panel
 
     public function setPanel($isClient = false)
     {
+        if($this->isClient === $isClient)
+            return;
+
         $key = $isClient ?
             env('PTERODACTYL_CLIENT_API_KEY') :
             env('PTERODACTYL_API_KEY');
@@ -155,9 +160,28 @@ class Panel
         }
     }
 
+    private function getSteamIdFromToken($loginToken, $steamServers)
+    {
+        foreach ($steamServers as $server){
+            if($loginToken === $server->login_token)
+                return $server->steam_id;
+        }
+        return null;
+    }
+
     public function syncServers()
     {
+        //get servers from csgo
         $servers = $this->mergePagination($this->panel->servers);
+
+        //get all steam server data from account (determined by STEAM_API_KEY in env)
+        $steamServers = null;
+        $response = $this->tokenService->getAccountList();
+        if(!empty($response['response']['servers'])){
+            $steamServers = $response['response']['servers'];
+        }
+
+        //filter our by user at this moment
         foreach ($servers as $key => $server){
             if($server->user !== $this->ownerId){
                 unset($servers[$key]);
@@ -168,15 +192,18 @@ class Panel
         foreach ($servers as $server) {
             $panelNode = PanelNode::firstWhere('external_id', $server->node);
 
+            $steamLoginToken = null;
             $steamId = null;
             $rconPass = null;
             $ip = null;
             $port = null;
             try {
-                $steamId = $server->container['environment']['STEAM_ACC'];
+                $steamLoginToken = $server->container['environment']['STEAM_ACC'];
                 $rconPass = $server->container['environment']['RCON_PASSWORD'];
                 $ip = $server->allocationObject['ip_alias'];
                 $port = $server->allocationObject['port'];
+                if(!is_null($steamServers))
+                    $steamId = $this->getSteamIdFromToken($steamLoginToken, $steamServers);
             }
             catch ( Exception $e) {
             }
@@ -189,7 +216,8 @@ class Panel
                 'name' => $server->name,
                 'uuid' => $server->uuid,
                 'data' => $server->all(),
-                'steam_id' => $steamId,
+                'steam_login_token' => $steamLoginToken,
+                'steam_id_64' => $steamId,
                 'rcon_password' => $rconPass,
                 'ip' => $ip,
                 'port' => $port,

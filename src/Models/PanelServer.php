@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property array|null $data
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string|null $steam_id
+ * @property string|null $steam_login_token
+ * @property int|null $steam_id_64
  * @property string|null $name
  * @property int|null $match_id
  * @property int|null $panel_node_id
@@ -35,7 +36,8 @@ class PanelServer extends Model
     protected $fillable = [
         'server_id',
         'uuid',
-        'steam_id',
+        'steam_id_64',
+        'steam_login_token',
         'match_id',
         'panel_node_id',
         'name',
