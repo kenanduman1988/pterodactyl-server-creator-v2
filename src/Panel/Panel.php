@@ -37,7 +37,6 @@ class Panel
     public \HCGCloud\Pterodactyl\Pterodactyl $panel;
     private Client $httpClient;
     private int $ownerId;
-    private bool $isClient;
 
     /**
      * Panel constructor.
@@ -46,7 +45,7 @@ class Panel
     public function __construct($isClient = false)
     {
         $this->isClient = $isClient;
-        $this->setPanel($isClient, true);
+        $this->setPanel($isClient);
         $this->tokenService = new TokenService();
         if(!$isClient)
            $this->ownerId = $this->setOwner();
@@ -54,11 +53,8 @@ class Panel
            $this->ownerId = 0;
     }
 
-    public function setPanel($isClient = false, $init = false)
+    public function setPanel($isClient = false)
     {
-        if(!$init && ($this->isClient === $isClient))
-            return;
-
         $key = $isClient ?
             env('PTERODACTYL_CLIENT_API_KEY') :
             env('PTERODACTYL_API_KEY');
