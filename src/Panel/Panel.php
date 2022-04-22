@@ -46,7 +46,7 @@ class Panel
     public function __construct($isClient = false)
     {
         $this->isClient = $isClient;
-        $this->setPanel($isClient);
+        $this->setPanel($isClient, true);
         $this->tokenService = new TokenService();
         if(!$isClient)
            $this->ownerId = $this->setOwner();
@@ -54,9 +54,9 @@ class Panel
            $this->ownerId = 0;
     }
 
-    public function setPanel($isClient = false)
+    public function setPanel($isClient = false, $init = false)
     {
-        if($this->isClient === $isClient)
+        if(!$init && ($this->isClient === $isClient))
             return;
 
         $key = $isClient ?
@@ -164,7 +164,7 @@ class Panel
     {
         foreach ($steamServers as $server){
             if($loginToken === $server->login_token)
-                return $server->steam_id;
+                return $server->steamid;
         }
         return null;
     }
@@ -177,8 +177,11 @@ class Panel
         //get all steam server data from account (determined by STEAM_API_KEY in env)
         $steamServers = null;
         $response = $this->tokenService->getAccountList();
-        if(!empty($response['response']['servers'])){
-            $steamServers = $response['response']['servers'];
+        try
+        {
+            $steamServers = $response->response->servers;
+        }
+        catch ( Exception $e) {
         }
 
         //filter our by user at this moment
