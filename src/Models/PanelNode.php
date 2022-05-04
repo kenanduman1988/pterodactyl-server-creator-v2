@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $uuid
  * @property string|null $description
  * @property array|null $data
+ * @property int|null $server_count
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $panel_location_id
@@ -35,6 +36,7 @@ class PanelNode extends Model
         'uuid',
         'description',
         'data',
+        'server_count',
     ];
 
     protected $casts = [

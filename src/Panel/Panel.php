@@ -449,10 +449,16 @@ class Panel
 
     public function syncNodes()
     {
-        PanelNode::truncate();
+        $servers = $this->mergePagination($this->panel->servers);
         $nodes = $this->mergePagination($this->panel->nodes);
-        /** @var Node $node */
+
         foreach ($nodes as $node) {
+            //calc server count on node:
+            $cntServers = 0;
+            foreach ($servers as $server){
+                if($server->node === $node->id)
+                    $cntServers++;
+            }
             $panelLocation = PanelLocation::firstWhere('external_id', $node->location_id);
             PanelNode::updateOrCreate([
                 'external_id' => $node->id
@@ -464,6 +470,7 @@ class Panel
                 'uuid' => $node->uuid,
                 'description' => $node->description,
                 'data' => $node->all(),
+                'server_count' => $cntServers,
             ]);
         }
     }
