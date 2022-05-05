@@ -8,6 +8,7 @@ use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Models\PanelLocation;
 use BangerGames\ServerCreator\Models\PanelNode;
 use BangerGames\ServerCreator\Models\PanelServer;
+use BangerGames\ServerCreator\Models\PanelServerActivity;
 use BangerGames\SteamGameServerLoginToken\TokenService;
 use Carbon\Carbon;
 use Exception;
@@ -32,6 +33,9 @@ class Panel
     public const DEFAULT_NEST_ID = 5;
     public const DEFAULT_EGG_ID = 15;
     public const DEFAULT_USER_ID = 1;
+
+    public const STATUS_MAINTAIN_INSTALLING = 11;
+    public const ACTION_UPDATE = 2;
 
     public TokenService $tokenService;
     public \HCGCloud\Pterodactyl\Pterodactyl $panel;
@@ -488,8 +492,6 @@ class Panel
             throw new AllocationNotFoundException();
         }
         try {
-            $panelServer = PanelServer::create();
-
             $user = $this->panel->users->get($this->ownerId);
             $egg = $this->panel->nest_eggs->get(self::DEFAULT_NEST_ID, self::DEFAULT_EGG_ID);
 
@@ -498,6 +500,15 @@ class Panel
             $steamAcc = $createToken->response->login_token;
             $steamid = $createToken->response->steamid;
             $rconPassword = $this->generateRconPassword();
+
+            //create new csgo server locally and set status installing
+            $panelServer = PanelServer::create(['status_id' => self::STATUS_MAINTAIN_INSTALLING]);
+            PanelServerActivity::create([
+                'panel_server_id' => $panelServer->id,
+                'action_id' => self::ACTION_UPDATE,
+                'status_id' => self::STATUS_MAINTAIN_INSTALLING,
+            ]);
+
             $data = [
                 "name" => $name,
                 'external_id' => (string)$panelServer->id,
