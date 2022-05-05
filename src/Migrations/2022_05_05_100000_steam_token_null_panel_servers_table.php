@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddSteamAccToPanelServersTable extends Migration
+class SteamTokenNullPanelServersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,9 +14,7 @@ class AddSteamAccToPanelServersTable extends Migration
     public function up()
     {
         Schema::table('panel_servers', function (Blueprint $table) {
-            $table->dropColumn('steam_id');
-            $table->string('steam_login_token')->nullable();
-            $table->unsignedBigInteger('steam_id_64')->nullable();
+            $table->string('steam_login_token')->nullable()->change();
         });
     }
 

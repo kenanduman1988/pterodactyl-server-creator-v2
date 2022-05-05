@@ -435,18 +435,6 @@ class Panel
         return null;
     }
 
-    //addicted to externally defined job!?
-    public function powerServersByNode($panelNodeId, $signal = 'restart')
-    {
-        $panelServers = PanelServer::where('panel_node_id', $panelNodeId)->where('suspended', false)->get();
-        /** @var PanelServer $panelServer */
-        foreach ($panelServers as $panelServer) {
-            $job = new PanelServerPowerJob($panelServer->id, $signal);
-            dispatch($job->onQueue('jobs'));
-            sleep(5);
-        }
-    }
-
     public function syncNodes()
     {
         $servers = $this->mergePagination($this->panel->servers);
@@ -497,7 +485,7 @@ class Panel
         try {
             $panelServer = PanelServer::create();
 
-            $user = $this->panel->users->get(self::DEFAULT_USER_ID);
+            $user = $this->panel->users->get($this->ownerId);
             $egg = $this->panel->nest_eggs->get(self::DEFAULT_NEST_ID, self::DEFAULT_EGG_ID);
 
             $name = sprintf('%s-%s', $node->name, $allocation->port);
