@@ -536,9 +536,11 @@ class Panel
             ];
 
             $data = array_merge($data, $extraData);
+            /*
             if ($data['skip_scripts'] === false) {
                 $data['name'] = $data['name'] . '-installed';
             }
+            */
             $newServer = $this->panel->servers->create($data);
             $panelNode = PanelNode::firstWhere('external_id', $newServer->node);
 
