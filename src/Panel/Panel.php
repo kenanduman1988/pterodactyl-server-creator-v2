@@ -176,6 +176,8 @@ class Panel
         try
         {
             $steamServers = $response->response->servers;
+            //filter orphans steam tokens:
+            self::removeOrphanSteamTokens($servers, $steamServers);
         }
         catch ( Exception $e) {
         }
@@ -299,7 +301,7 @@ class Panel
     /**
      * @throws Exception
      */
-    public function deleteServer($serverId, $steamId): void
+    public function deleteServer(int $serverId, int $steamId): void
     {
         if (!$serverId) {
             return;
@@ -564,23 +566,24 @@ class Panel
         }
     }
 
-    private function isSteamIdBusy($steamId)
+    private function removeOrphanSteamTokens($csgoServers, $steamServers)
     {
-        $panelServer = PanelServer::firstWhere('steam_id', $steamId);
-        return $panelServer ? true : false;
-    }
-
-    public function syncSteamTokens()
-    {
-        $tokenService = new TokenService();
-        $accountList = $tokenService->getAccountList();
-        $servers = $accountList->response->servers ?? [];
-        foreach ($servers as $server) {
-            $steamId = $server->steamid;
-            if (!$this->isSteamIdBusy($steamId)) {
-                $tokenService->deleteAccount($steamId);
+        //remove used ones
+        foreach ($csgoServers as $csgoServer){
+            $steamLoginToken = $csgoServer->container['environment']['STEAM_ACC'];
+            foreach ($steamServers as $key => $server) {
+                if($server->login_token === $steamLoginToken) {
+                    unset($steamServers[$key]);
+                    break;
+                }
             }
         }
+
+        //remove orphans
+        foreach ($steamServers as $server) {
+            $this->tokenService->deleteAccount($server->steamid);
+        }
+
     }
 
     public function generateRconPassword($length = 16) {
