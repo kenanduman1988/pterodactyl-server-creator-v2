@@ -429,7 +429,10 @@ class Panel
                 return $this->panel->servers->resources($server->identifier);
             }
         } catch (Exception $e) {
-            return null;
+            if(strpos($e->getMessage(),"This server has not yet completed its installation process") !== false)
+                return 'installing';
+            else
+                return null;
         }
 
         return null;
@@ -544,13 +547,12 @@ class Panel
                 'name' => $newServer->name,
                 'panel_node_id' => $panelNode->id,
                 'uuid' => $newServer->uuid,
-                'status' => $newServer->status,
-                'suspended' => $newServer->suspended,
+                'steam_login_token' => $steamAcc,
+                'steam_id_64' => $steamid,
+                'ip' => $allocation->alias,
+                'port' => $allocation->port,
                 'data' => $newServer->all()
             ]);
-
-            $job = new PanelServerPowerJob($panelServer->id, 'restart');
-            dispatch($job->delay(Carbon::now()->addHour())->onQueue('jobs'));
 
             return $newServer;
 
