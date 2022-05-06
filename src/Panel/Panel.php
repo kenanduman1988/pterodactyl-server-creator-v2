@@ -475,12 +475,12 @@ class Panel
     /**
      * @param int $nodeId
      * @param array $extraData
-     * @return Server|null
+     * @return PanelServer|null
      * @throws NodeNotFoundException
      * @throws AllocationNotFoundException
      * @throws Exception
      */
-    public function createServer(int $nodeId, array $extraData): ?Server
+    public function createServer(int $nodeId, array $extraData): ?PanelServer
     {
         try {
             $node = $this->panel->nodes->get($nodeId);
@@ -569,7 +569,7 @@ class Panel
                 'data' => $newServer->all()
             ]);
 
-            return $newServer;
+            return $panelServer;
 
         } catch (ValidationException $e) {
             $error_msg = implode(";",$e->errors());
