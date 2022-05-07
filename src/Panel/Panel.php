@@ -69,7 +69,7 @@ class Panel
             'base_uri'    => env('PTERODACTYL_BASE_URI'),
             'http_errors' => false,
             'connect_timeout' => 10,
-            'timeout' => 20,
+            'timeout' => 30,
             'debug' => app()->isLocal(),
             'headers'     => [
                 'Accept'       => 'application/json',
@@ -550,18 +550,14 @@ class Panel
                 "start_on_completion" => false
             ];
 
-            AppLogHandler::logInfo("Panel createServer step2",AppLog::CATEGORY_GAME_SERVERS);
+
             $data = array_merge($data, $extraData);
-            /*
-            if ($data['skip_scripts'] === false) {
-                $data['name'] = $data['name'] . '-installed';
-            }
-            */
+            AppLogHandler::logInfo("Panel createServer step2",AppLog::CATEGORY_GAME_SERVERS);
+
             $newServer = $this->panel->servers->create($data);
-            $panelNode = PanelNode::firstWhere('external_id', $newServer->node);
 
             AppLogHandler::logInfo("Panel createServer step3",AppLog::CATEGORY_GAME_SERVERS);
-
+            $panelNode = PanelNode::firstWhere('external_id', $nodeId);
             $panelServer->update([
                 'steam_id' => $steamid,
                 'rcon_password' => $rconPassword,
