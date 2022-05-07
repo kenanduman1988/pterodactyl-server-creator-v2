@@ -3,6 +3,8 @@
 namespace BangerGames\ServerCreator\Panel;
 
 use App\Jobs\PanelServerPowerJob;
+use App\Model\AppLog;
+use App\Traits\AppLogHandler;
 use BangerGames\ServerCreator\Exceptions\AllocationNotFoundException;
 use BangerGames\ServerCreator\Exceptions\NodeNotFoundException;
 use BangerGames\ServerCreator\Models\PanelLocation;
@@ -501,6 +503,8 @@ class Panel
             $steamid = $createToken->response->steamid;
             $rconPassword = $this->generateRconPassword();
 
+            AppLogHandler::logInfo("Panel createServer step1",AppLog::CATEGORY_GAME_SERVERS);
+
             //create new csgo server locally and set status installing
             $panelServer = PanelServer::create(['status_id' => self::STATUS_MAINTAIN_INSTALLING]);
             PanelServerActivity::create([
@@ -546,6 +550,7 @@ class Panel
                 "start_on_completion" => false
             ];
 
+            AppLogHandler::logInfo("Panel createServer step2",AppLog::CATEGORY_GAME_SERVERS);
             $data = array_merge($data, $extraData);
             /*
             if ($data['skip_scripts'] === false) {
@@ -554,6 +559,8 @@ class Panel
             */
             $newServer = $this->panel->servers->create($data);
             $panelNode = PanelNode::firstWhere('external_id', $newServer->node);
+
+            AppLogHandler::logInfo("Panel createServer step3",AppLog::CATEGORY_GAME_SERVERS);
 
             $panelServer->update([
                 'steam_id' => $steamid,
