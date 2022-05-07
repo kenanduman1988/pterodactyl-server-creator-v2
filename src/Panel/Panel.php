@@ -495,6 +495,8 @@ class Panel
         }
         try {
             $user = $this->panel->users->get($this->ownerId);
+            AppLogHandler::logInfo("Panel createServer user id: $user->id",AppLog::CATEGORY_GAME_SERVERS);
+
             $egg = $this->panel->nest_eggs->get(self::DEFAULT_NEST_ID, self::DEFAULT_EGG_ID);
 
             $name = sprintf('%s-%s', $node->name, $allocation->port);
