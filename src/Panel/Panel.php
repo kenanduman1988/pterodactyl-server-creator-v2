@@ -182,8 +182,8 @@ class Panel
         try
         {
             $steamServers = $response->response->servers;
-            //filter orphans steam tokens:
-            self::removeOrphanSteamTokens($servers, $steamServers);
+            //filter orphans steam tokens (skip for now):
+            //self::removeOrphanSteamTokens($servers, $steamServers);
         }
         catch ( Exception $e) {
         }
@@ -410,6 +410,27 @@ class Panel
     /**
      * @throws Exception
      */
+    public function getLastLogContent(PanelServer $panelServer): string
+    {
+        try {
+            $this->setPanel();
+            $server = $this->panel->servers->get($panelServer->server_id);
+            $this->setPanel(true);
+            $response = $this->panel->http->get("servers/{$server->identifier}/files/list", ['directory' => 'csgo/logs']);
+            $content = "";
+            if(!empty($response->data)){
+                $lastLogFileName = $response->data[0]->name;
+                $content = $this->panel->http->get("servers/{$server->identifier}/files/contents", ['file' => 'csgo/logs/'.$lastLogFileName]);
+            }
+            return $content;
+        } catch (Exception $e) {
+            throw new Exception($e);
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     public function suspendServer(PanelServer $panelServer): void
     {
         if (!$panelServer->server_id) {
@@ -495,8 +516,6 @@ class Panel
         }
         try {
             $user = $this->panel->users->get($this->ownerId);
-            AppLogHandler::logInfo("Panel createServer user id: $user->id",AppLog::CATEGORY_GAME_SERVERS);
-
             $egg = $this->panel->nest_eggs->get(self::DEFAULT_NEST_ID, self::DEFAULT_EGG_ID);
 
             $name = sprintf('%s-%s', $node->name, $allocation->port);
@@ -504,8 +523,6 @@ class Panel
             $steamAcc = $createToken->response->login_token;
             $steamid = $createToken->response->steamid;
             $rconPassword = $this->generateRconPassword();
-
-            AppLogHandler::logInfo("Panel createServer step1",AppLog::CATEGORY_GAME_SERVERS);
 
             //create new csgo server locally and set status installing
             $panelServer = PanelServer::create(['status_id' => self::STATUS_MAINTAIN_INSTALLING]);
@@ -552,16 +569,12 @@ class Panel
                 "start_on_completion" => false
             ];
 
-
             $data = array_merge($data, $extraData);
-            AppLogHandler::logInfo("Panel createServer step2",AppLog::CATEGORY_GAME_SERVERS);
-
             $newServer = $this->panel->servers->create($data);
+            AppLogHandler::logInfo("Panel server $newServer->name created",AppLog::CATEGORY_GAME_SERVERS);
 
-            AppLogHandler::logInfo("Panel createServer step3",AppLog::CATEGORY_GAME_SERVERS);
             $panelNode = PanelNode::firstWhere('external_id', $nodeId);
             $panelServer->update([
-                'steam_id' => $steamid,
                 'rcon_password' => $rconPassword,
                 'server_id' => $newServer->id,
                 'name' => $newServer->name,
