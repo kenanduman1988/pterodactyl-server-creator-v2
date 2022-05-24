@@ -202,20 +202,33 @@ class Panel
             $steamLoginToken = null;
             $steamId = null;
             $rconPass = null;
+
+            //------------try to find already existing port/ip from database
             $ip = null;
             $port = null;
+            $allocObjectFound = false;
+            $panelServer = PanelServer::where('server_id', $server->id)->first();
+            if($panelServer){
+                $ip = $panelServer->ip;
+                $port = $panelServer->port;
+            }
+            //------------get server data (can fail in some cases)
             try {
                 $steamLoginToken = $server->container['environment']['STEAM_ACC'];
                 $rconPass = $server->container['environment']['RCON_PASSWORD'];
-                $ip = $server->allocationObject['ip_alias'];
-                $port = $server->allocationObject['port'];
+                if(!empty($server->allocationObject['ip_alias'])){
+                    $ip = $server->allocationObject['ip_alias'];
+                    $port = $server->allocationObject['port'];
+                    $allocObjectFound = true;
+                }
                 if(!is_null($steamServers))
                     $steamId = $this->getSteamIdFromToken($steamLoginToken, $steamServers);
             }
             catch ( Exception $e) {
+                AppLogHandler::logInfo("Synchronization: panel server $server->name failed to get environment or allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
             }
 
-            PanelServer::updateOrCreate([
+            $panelServer = PanelServer::updateOrCreate([
                 'server_id' => $server->id
             ], [
                 'server_id' => $server->id,
@@ -229,6 +242,24 @@ class Panel
                 'ip' => $ip,
                 'port' => $port,
             ]);
+
+            //------------if not already, try to get alloc object directly
+            try {
+                if(!$allocObjectFound){
+                    $allocObject = $this->getServerAllocation($panelServer);
+                    $this->setPanel();
+                    if(!empty($allocObject)){
+                        $data = $panelServer->data;
+                        $data['allocationObject'] = $allocObject;
+                        $panelServer->update(['data' => $data]);
+                    }
+                }
+            }
+            catch ( Exception $e) {
+                $msg = $e->getMessage();
+                AppLogHandler::logInfo("Synchronization: panel server $newServer->name failed to get allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
+            }
+
         }
     }
 
@@ -421,6 +452,26 @@ class Panel
             if(!empty($response->data)){
                 $lastLogFileName = $response->data[0]->name;
                 $content = $this->panel->http->get("servers/{$server->identifier}/files/contents", ['file' => 'csgo/logs/'.$lastLogFileName]);
+            }
+            return $content;
+        } catch (Exception $e) {
+            throw new Exception($e);
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getServerAllocation(PanelServer $panelServer): string
+    {
+        try {
+            $this->setPanel();
+            $server = $this->panel->servers->get($panelServer->server_id);
+            $this->setPanel(true);
+            $response = $this->panel->http->get("servers/{$server->identifier}/network/allocations");
+            $content = "";
+            if(!empty($response->data)){
+                $content = json_encode($response->data[0]);
             }
             return $content;
         } catch (Exception $e) {
