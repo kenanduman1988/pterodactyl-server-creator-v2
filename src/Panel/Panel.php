@@ -173,6 +173,8 @@ class Panel
 
     public function syncServers()
     {
+        AppLogHandler::logInfo("Csgo panel servers synchronization started",AppLog::CATEGORY_GAME_SERVERS);
+
         //get servers from csgo
         $servers = $this->mergePagination($this->panel->servers);
 
@@ -462,16 +464,16 @@ class Panel
     /**
      * @throws Exception
      */
-    public function getServerAllocation(PanelServer $panelServer): string
+    public function getServerAllocation(PanelServer $panelServer): array
     {
         try {
             $this->setPanel();
             $server = $this->panel->servers->get($panelServer->server_id);
             $this->setPanel(true);
             $response = $this->panel->http->get("servers/{$server->identifier}/network/allocations");
-            $content = "";
+            $content = [];
             if(!empty($response->data)){
-                $content = json_encode($response->data[0]);
+                $content = $response->data[0]->toArray();
             }
             return $content;
         } catch (Exception $e) {
