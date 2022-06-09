@@ -188,6 +188,7 @@ class Panel
             //self::removeOrphanSteamTokens($servers, $steamServers);
         }
         catch ( Exception $e) {
+            AppLogHandler::logException("Server synchronization: can't load steam account details",AppLog::CATEGORY_GAME_SERVERS);
         }
 
         //filter our by user at this moment
@@ -213,6 +214,7 @@ class Panel
             if($panelServer){
                 $ip = $panelServer->ip;
                 $port = $panelServer->port;
+                $steamId = $panelServer->steam_id_64; //retain old one if fail to load steam acc details
             }
             //------------get server data (can fail in some cases)
             try {
@@ -223,11 +225,14 @@ class Panel
                     $port = $server->allocationObject['port'];
                     $allocObjectFound = true;
                 }
-                if(!is_null($steamServers))
-                    $steamId = $this->getSteamIdFromToken($steamLoginToken, $steamServers);
+                if(!is_null($steamServers)){
+                    $steamIdParsed = $this->getSteamIdFromToken($steamLoginToken, $steamServers);
+                    if(!is_null($steamIdParsed))
+                        $steamId = $steamIdParsed;
+                }
             }
             catch ( Exception $e) {
-                AppLogHandler::logInfo("Synchronization: panel server $server->name failed to get environment or allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
+                AppLogHandler::logInfo("Server synchronization: panel server $server->name failed to get environment or allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
             }
 
             $panelServer = PanelServer::updateOrCreate([
@@ -259,7 +264,7 @@ class Panel
             }
             catch ( Exception $e) {
                 $msg = $e->getMessage();
-                AppLogHandler::logInfo("Synchronization: panel server $newServer->name failed to get allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
+                AppLogHandler::logInfo("Server synchronization: panel server $newServer->name failed to get allocation data. Exception: $msg",AppLog::CATEGORY_GAME_SERVERS);
             }
 
         }
