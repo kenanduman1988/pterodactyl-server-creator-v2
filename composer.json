@@ -1,7 +1,7 @@
 {
-    "name": "bangergames/pterodactyl-server-creator",
+    "name": "kenanduman/pterodactyl-server-creator",
     "description": "Pterodactyl server creator for Laravel",
-    "homepage": "https://github.com/bangergames/pterodactyl-server-creator",
+    "homepage": "https://github.com/kenanduman/pterodactyl-server-creator-v2",
     "license": "MIT",
     "authors": [
         {
@@ -13,8 +13,8 @@
     "require": {
         "php": ">=7.4",
         "guzzlehttp/guzzle": "^6.2 || ^7.0",
-        "illuminate/support": "~5.6 || ~6.0 || ~7.0 || ~8.0",
-        "illuminate/console": "^6.0|^7.0|^8.0",
+        "illuminate/support": "~5.6 || ~6.0 || ~7.0 || ~8.0 || ~9.0",
+        "illuminate/console": "^6.0|^7.0|^8.0|^9.0",
         "hcgcloud/pterodactyl-sdk": "dev-develop",
         "bangergames/steam-game-server-login-token": "dev-master"
     },
